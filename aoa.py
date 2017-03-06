@@ -12,6 +12,7 @@ class Activity(object):
 		self.toNode.addIn(self)
 		self.ES = self.EF = self.LS = self.LF = 0
 		self.TF = self.FF = self.INTF = self.INDF = 0
+		self.onCP = False
 
 	def printRelation(self):
 		print('N'+str(self.fromNode.id) + ' ---'+self.name+'---> ' + 'N'+str(self.toNode.id))
@@ -20,16 +21,21 @@ class Activity(object):
 		return self.dur
 
 	def cal_time(self):
-		self.ES = self.fromNode.TE
-		self.LF = self.toNode.TL
+		self.ES = int(self.fromNode.TE)
+		self.LF = int(self.toNode.TL)
 		self.EF = int(self.ES) + self.dur
-		self.LS = self.LF - self.dur
+		self.LS = int(self.LF) - self.dur
+		cals = self.ES - self.LS
+		calf = self.EF - self.LF
+		if cals == 0 :
+			if calf == 0:
+				self.onCP = True
 
 	def cal_FloatTime(self):
-			self.TF = int(self.LF) - int(self.ES) - self.dur
-			self.FF = int(self.toNode.TE) - int(self.fromNode.TE) - self.dur
-			self.INTF = self.TF - self.FF
-			self.INDF = self.toNode.TE - self.fromNode.TL - self.dur
+		self.TF = int(self.LF) - int(self.ES) - self.dur
+		self.FF = int(self.toNode.TE) - int(self.fromNode.TE) - self.dur
+		self.INTF = self.TF - self.FF
+		self.INDF = self.toNode.TE - self.fromNode.TL - self.dur
 
 
 class Node(object):
@@ -92,6 +98,12 @@ class Travel(object):
 	def cal_TL(self):
 		for n in reversed(self.nodes):
 			n.cal_TL()
+	def getCP(self):
+		cp = ""
+		for a in self.activitys:
+			if a.onCP:
+				cp = cp + a.name
+		print("Critical Path is %s" % cp)
 
 	def printTETL(self):
 		for n in self.nodes:
@@ -112,6 +124,7 @@ class Travel(object):
 	def cal_floatTime(self):
 		for a in self.activitys:
 			a.cal_FloatTime()
+
 
 class FromFileAndCreate(object):
 	def __init__(self):
@@ -253,6 +266,6 @@ def test4():
 	T.cal_ELTime()
 	T.cal_floatTime()
 	T.print_activity_Time()
-
+	T.getCP()
 if __name__ == "__main__":
-    test4()
+	test4()
