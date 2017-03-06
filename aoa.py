@@ -1,5 +1,6 @@
 #coding utf-8
 
+# 一個活動
 class Activity(object):
 
 	def __init__(self,name,fromNode,toNode,dur):
@@ -8,18 +9,22 @@ class Activity(object):
 		self.fromNode = fromNode
 		self.toNode = toNode
 		self.dur = int(dur)
+		# 把活動加進頭尾節點
 		self.fromNode.addOut(self)
 		self.toNode.addIn(self)
 		self.ES = self.EF = self.LS = self.LF = 0
 		self.TF = self.FF = self.INTF = self.INDF = 0
 		self.onCP = False
 
+	# 列印出關係
 	def printRelation(self):
 		print('N'+str(self.fromNode.id) + ' ---'+self.name+'---> ' + 'N'+str(self.toNode.id))
 
+	# 回傳工期
 	def getDur(self):
 		return self.dur
 
+	# 計算 ES EF LS LF 並且看是不是 CP
 	def cal_time(self):
 		self.ES = int(self.fromNode.TE)
 		self.LF = int(self.toNode.TL)
@@ -31,6 +36,7 @@ class Activity(object):
 			if calf == 0:
 				self.onCP = True
 
+	# 計算浮時
 	def cal_FloatTime(self):
 		self.TF = int(self.LF) - int(self.ES) - self.dur
 		self.FF = int(self.toNode.TE) - int(self.fromNode.TE) - self.dur
@@ -38,6 +44,7 @@ class Activity(object):
 		self.INDF = self.toNode.TE - self.fromNode.TL - self.dur
 
 
+# 一個節點
 class Node(object):
 
 	def __init__(self,idn,TE = 0):
@@ -48,24 +55,29 @@ class Node(object):
 		self.inList = []
 		self.outList = []
 
+	# 加入一個進去的活動
 	def addIn(self,A):
 		self.inList.append(A)
 
+	# 加入一個出去的活動
 	def addOut(self,A):
 		self.outList.append(A)
 
+	# 顯示進去的活動
 	def printInList(self):
 		s = 'n'+str(self.id) + ' : '
 		for a in self.inList:
 			s = s + a.name + ' '
 		print(s)
 
+	# 顯示出去的活動
 	def printoutList(self):
 		s = 'n'+str(self.id) + ' : '
 		for a in self.outList:
 			s = s + a.name + ' '
 		print(s)
 
+	# 計算 TE
 	def cal_TE(self):
 		maxTE = self.TE
 		for a in self.inList:
@@ -74,6 +86,7 @@ class Node(object):
 		self.TE = maxTE
 		self.TL = self.TE
 
+	# 計算TL
 	def cal_TL(self):
 		if len(self.outList) > 0:
 			minTL = 999
@@ -82,6 +95,7 @@ class Node(object):
 					minTL = (int(a.toNode.TL) - int(a.dur))
 			self.TL = minTL
 
+	# 設定TE
 	def setStartTE(self,ste):
 		self.TE = ste
 
@@ -91,13 +105,17 @@ class Travel(object):
 		self.nodes = nodes
 		self.activitys = activitys
 
+	# 計算每個node的TE
 	def cal_TE(self):
 		for n in self.nodes:
 			n.cal_TE()
 
+	# 計算每個node 的 TL
 	def cal_TL(self):
 		for n in reversed(self.nodes):
 			n.cal_TL()
+
+	# 取得CP
 	def getCP(self):
 		cp = ""
 		for a in self.activitys:
@@ -105,27 +123,32 @@ class Travel(object):
 				cp = cp + a.name
 		print("Critical Path is %s" % cp)
 
+	# 印出 TE TL
 	def printTETL(self):
 		for n in self.nodes:
 			print('node ' + str(n.id))
 			print('TE ' + str(n.TE))
 			print('TL ' + str(n.TL) + '\n')
 
+	# 計算 每個activity 的 EL
 	def cal_ELTime(self):
 		for a in self.activitys:
 			a.cal_time()
 
+	# 印出 activity 的 ES EF LS LF 還有 float time
 	def print_activity_Time(self):
 		for a in self.activitys:
 			print(a.name)
 			print('| '+str(a.ES)+'  '+str(a.EF) + ' | ' + str(a.TF) + '  ' + str(a.FF)+ ' | ' )
 			print('| '+str(a.LS)+'  '+str(a.LF) + ' | ' + str(a.INTF) + '  ' + str(a.INDF)+ ' | '  +'\n')
 
+	# 計算浮時
 	def cal_floatTime(self):
 		for a in self.activitys:
 			a.cal_FloatTime()
 
 
+# 讀 node activity 資料
 class FromFileAndCreate(object):
 	def __init__(self):
 		self.nodes = []
@@ -141,6 +164,7 @@ class FromFileAndCreate(object):
 			line = line.replace('\n','')
 			line = line.split(',')
 			startTE = 0
+			# 如果沒有給起始時間，預設為0
 			if len(line) > 1:
 				startTE = line[1]
 			self.nodes.append(Node(int(line[0]),startTE))
@@ -267,5 +291,6 @@ def test4():
 	T.cal_floatTime()
 	T.print_activity_Time()
 	T.getCP()
+	
 if __name__ == "__main__":
 	test4()
